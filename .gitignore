@@ -32,6 +32,10 @@ ENV/
 # Dataset (large files, downloaded via sc.py)
 data/
 
+# Large processed dataset artefacts in Homeworks (too large for GitHub)
+Homeworks/HW4/*.csv
+Homeworks/HW4/*.parquet
+
 # Model artefacts
 ml/model/
 *.pkl
