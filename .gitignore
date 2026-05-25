@@ -28,6 +28,7 @@ ENV/
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
+!Homeworks/**/*.ipynb
 
 # Dataset (large files, downloaded via sc.py)
 data/
