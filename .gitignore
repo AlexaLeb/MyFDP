@@ -37,6 +37,9 @@ data/
 Homeworks/HW4/*.csv
 Homeworks/HW4/*.parquet
 
+# Claude internal notes — not for git
+**/claude_models.md
+
 # Model artefacts
 ml/model/
 *.pkl

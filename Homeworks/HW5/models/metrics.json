@@ -1,0 +1,36 @@
+{
+  "val1": {
+    "naive": {
+      "mean_pinball": 0.3972,
+      "mape": 84.0,
+      "wrmsse": 0.9461
+    },
+    "xgboost_5m": {
+      "mean_pinball": 0.3144,
+      "mape": 65.0,
+      "wrmsse": 0.7098
+    },
+    "lgbm_5m": {
+      "mean_pinball": 0.3122,
+      "mape": 64.1,
+      "wrmsse": 0.6907
+    },
+    "lgbm_optuna": {
+      "mean_pinball": 0.31112024010957845,
+      "mape": 64.0,
+      "wrmsse": 0.6906
+    },
+    "lama": {
+      "mean_pinball": 0.5328,
+      "mape": 55.8,
+      "wrmsse": 0.681
+    }
+  },
+  "val2": {
+    "lgbm_optuna": {
+      "mean_pinball": 0.32006459898290746,
+      "mape": 63.9,
+      "wrmsse": 0.7143
+    }
+  }
+}
