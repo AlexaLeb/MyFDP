@@ -1,3 +1,5 @@
+import os
+
 from sqlmodel import SQLModel, Session, create_engine
 
 from .config import get_settings
@@ -5,15 +7,16 @@ from logger.logging import get_logger
 
 logger = get_logger(logger_name=__name__)
 
-# create_engine не открывает соединение сразу — только при первом запросе,
-# поэтому импорт модуля безопасен даже без поднятого Postgres.
-engine = create_engine(
-    url=get_settings().DATABASE_URL_psycopg,
-    echo=False,
-    pool_size=5,
-    max_overflow=10,
-)
-logger.info("Движок БД создан")
+# DATABASE_URL переопределяет драйвер (sqlite для тестов, psycopg2 для прода).
+DATABASE_URL = os.environ.get("DATABASE_URL") or get_settings().DATABASE_URL_psycopg
+
+# Пул соединений нужен только серверным БД; для sqlite его не задаём.
+_engine_kwargs = {"echo": False}
+if not DATABASE_URL.startswith("sqlite"):
+    _engine_kwargs.update(pool_size=5, max_overflow=10)
+
+engine = create_engine(DATABASE_URL, **_engine_kwargs)
+logger.info(f"Движок БД создан ({DATABASE_URL.split(':')[0]})")
 
 
 def get_session():
