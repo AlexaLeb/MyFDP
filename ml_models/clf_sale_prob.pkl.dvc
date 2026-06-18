@@ -1,0 +1,5 @@
+outs:
+- md5: 5b6cca7ce360e116b9595e6c1880727d
+  size: 6772668
+  hash: md5
+  path: clf_sale_prob.pkl

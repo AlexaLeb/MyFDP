@@ -1,0 +1,33 @@
+{
+  "features": [
+    "lag_1",
+    "lag_2",
+    "lag_7",
+    "lag_14",
+    "lag_28",
+    "lag_56",
+    "roll_mean_7",
+    "roll_std_7",
+    "roll_mean_28",
+    "roll_std_28",
+    "roll_mean_56",
+    "roll_std_56",
+    "sell_price",
+    "price_rel",
+    "is_promo",
+    "price_change",
+    "wday",
+    "month",
+    "week_of_year",
+    "is_weekend",
+    "snap_CA",
+    "snap_TX",
+    "snap_WI",
+    "has_event",
+    "is_top_event",
+    "age_of_series",
+    "is_new_sku",
+    "is_outlier_day"
+  ],
+  "target": "sales"
+}

@@ -1,0 +1,16 @@
+{
+  "val1": {
+    "mean_pinball": 0.30767244508589203,
+    "pinball_q01": 0.14087170431185342,
+    "pinball_q05": 0.4819212691023313,
+    "pinball_q09": 0.30022436184349144
+  },
+  "val2": {
+    "mean_pinball": 0.3166742434255501,
+    "pinball_q01": 0.14525201604739105,
+    "pinball_q05": 0.4967403705086859,
+    "pinball_q09": 0.30803034372057336,
+    "vs_naive_pct": -20.273352611895746
+  },
+  "description": "LightGBM v4: 38 features + P(sale>0) classifier output"
+}
