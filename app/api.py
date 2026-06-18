@@ -26,7 +26,9 @@ app = FastAPI(title="MFDP — квантильное прогнозирован�
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # Streamlit ходит в API server-side (requests), браузерный CORS-credentials не нужен.
+    # allow_credentials=True вместе с "*" невалиден по спецификации и отвергается браузерами.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
