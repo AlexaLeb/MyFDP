@@ -1,0 +1,5 @@
+outs:
+- md5: a3840d3e5cef3a13aa41f6fd8ba00166
+  size: 8628703
+  hash: md5
+  path: lgb_v4_q05.pkl
