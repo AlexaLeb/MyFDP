@@ -66,8 +66,12 @@ def callback(ch, method, properties, body):
 def create_connection(max_attempts: int = 10):
     for attempt in range(max_attempts):
         try:
+            # heartbeat=0: во время CPU-bound инференса BlockingConnection не может
+            # отвечать на heartbeat, и брокер рвал бы соединение на долгих задачах
+            # (задача уходила бы в redelivery и обрабатывалась заново по кругу).
+            # Мёртвый TCP переживём: цикл в __main__ переподключает воркер сам.
             conn = pika.BlockingConnection(
-                pika.ConnectionParameters(host=RABBITMQ_HOST, heartbeat=100)
+                pika.ConnectionParameters(host=RABBITMQ_HOST, heartbeat=0)
             )
             logger.info("Соединение с RabbitMQ установлено")
             return conn

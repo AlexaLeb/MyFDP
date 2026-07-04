@@ -100,3 +100,18 @@ def test_foreign_job_forbidden(auth_client, client):
     client.post("/api/users/signup", json={"email": "b@b.ru", "password": "pw"})
     client.post("/login/token", data={"username": "b@b.ru", "password": "pw"})
     assert client.get(f"/api/v1/jobs/{job_id}").status_code == 403
+
+
+def test_buy_credits_adds_150(auth_client):
+    """Покупка кредитов из UI: POST /api/balance/ amount=150 → баланс +150."""
+    start = auth_client.get("/api/balance/").json()["balance"]
+    r = auth_client.post("/api/balance/", json={"amount": 150})
+    assert r.status_code == 200
+    assert r.json()["balance"] == start + 150
+    # баланс реально сохранён
+    assert auth_client.get("/api/balance/").json()["balance"] == start + 150
+
+
+def test_deposit_non_positive_400(auth_client):
+    assert auth_client.post("/api/balance/", json={"amount": 0}).status_code == 400
+    assert auth_client.post("/api/balance/", json={"amount": -150}).status_code == 400

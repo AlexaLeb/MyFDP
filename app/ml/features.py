@@ -56,7 +56,27 @@ def validate_csv(df: pd.DataFrame) -> Tuple[int, int]:
     except Exception:
         raise ValueError("Колонка 'sales' должна быть числовой")
 
-    counts = df.groupby("sku_id")["date"].count()
+    # Непрерывность истории: лаги считаются позиционно (h[-7] = «7 записей назад»),
+    # поэтому дубликаты дат и пропуски дней дают тихо неверный прогноз — отклоняем сразу.
+    days = pd.DataFrame({"sku_id": df["sku_id"].values, "date": dates.dt.normalize().values})
+    dup = days[days.duplicated()]
+    if len(dup) > 0:
+        examples = ", ".join(
+            f"{r.sku_id}: {pd.Timestamp(r.date).date()}" for r in dup.head(5).itertuples()
+        )
+        raise ValueError(f"Дубликаты дат внутри SKU: {examples}")
+
+    agg = days.groupby("sku_id")["date"].agg(["min", "max", "count"])
+    span_days = (agg["max"] - agg["min"]).dt.days + 1
+    gapped = agg[span_days != agg["count"]]
+    if len(gapped) > 0:
+        examples = ", ".join(str(s) for s in gapped.index[:5])
+        raise ValueError(
+            f"{len(gapped)} SKU имеют пропуски дат — история должна быть непрерывной "
+            f"по дням. Примеры: {examples}"
+        )
+
+    counts = agg["count"]
     short = counts[counts < MIN_HISTORY_DAYS]
     if len(short) > 0:
         examples = ", ".join(str(s) for s in short.index[:5])

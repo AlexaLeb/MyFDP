@@ -16,6 +16,7 @@ import streamlit as st
 API_URL = os.environ.get("API_URL", "http://localhost:8080")
 POLL_TIMEOUT_S = 120
 POLL_INTERVAL_S = 2
+CREDITS_PACK = 150  # размер пакета кредитов за одну «покупку» (оплата fake, MVP)
 
 st.set_page_config(page_title="MFDP — прогноз спроса", page_icon="📈", layout="wide")
 
@@ -160,6 +161,26 @@ def show_results(job_id: int):
     st.download_button("Скачать прогноз (CSV)", csv, f"forecast_{job_id}.csv", "text/csv")
 
 
+# ---------- Покупка кредитов ----------
+def credits_page():
+    st.subheader("💳 Покупка кредитов")
+    bal = get_balance()
+    if bal is not None:
+        st.metric("Текущий баланс, кредитов", f"{bal:.0f}")
+    st.caption(f"Один прогноз стоит 50 кредитов. Пакет — {CREDITS_PACK} кредитов (оплата демо).")
+
+    if st.button(f"Купить кредиты (+{CREDITS_PACK})", type="primary"):
+        try:
+            r = api("post", "/api/balance/", json={"amount": CREDITS_PACK})
+        except requests.RequestException as e:
+            st.error(f"Сервис недоступен: {e}")
+            return
+        if r.status_code == 200:
+            st.success(f"Начислено {CREDITS_PACK} кредитов. Новый баланс: {r.json()['balance']:.0f}")
+        else:
+            st.error(f"Ошибка {r.status_code}: {r.text}")
+
+
 # ---------- Главный экран ----------
 def main():
     st.title("📈 Квантильный прогноз спроса")
@@ -169,20 +190,26 @@ def main():
         st.info("Войдите или зарегистрируйтесь в панели слева, чтобы загрузить данные.")
         return
 
-    st.subheader("Загрузка данных")
-    st.caption("CSV с колонками: `date`, `sku_id`, `sales`. Минимум 60 дней истории на SKU.")
-    uploaded = st.file_uploader("CSV-файл", type=["csv"])
-    horizon = st.selectbox("Горизонт прогноза, дней", [7, 14, 28])
+    tab_forecast, tab_credits = st.tabs(["📊 Прогноз", "💳 Кредиты"])
 
-    if uploaded is not None and st.button("Построить прогноз", type="primary"):
-        job_id = run_forecast(uploaded.getvalue(), uploaded.name, horizon)
-        if job_id:
-            st.session_state.last_job = job_id
+    with tab_forecast:
+        st.subheader("Загрузка данных")
+        st.caption("CSV с колонками: `date`, `sku_id`, `sales`. Минимум 60 дней истории на SKU.")
+        uploaded = st.file_uploader("CSV-файл", type=["csv"])
+        horizon = st.selectbox("Горизонт прогноза, дней", [7, 14, 28])
 
-    if st.session_state.get("last_job"):
-        st.divider()
-        st.subheader(f"Результаты задачи #{st.session_state.last_job}")
-        show_results(st.session_state.last_job)
+        if uploaded is not None and st.button("Построить прогноз", type="primary"):
+            job_id = run_forecast(uploaded.getvalue(), uploaded.name, horizon)
+            if job_id:
+                st.session_state.last_job = job_id
+
+        if st.session_state.get("last_job"):
+            st.divider()
+            st.subheader(f"Результаты задачи #{st.session_state.last_job}")
+            show_results(st.session_state.last_job)
+
+    with tab_credits:
+        credits_page()
 
 
 if __name__ == "__main__":

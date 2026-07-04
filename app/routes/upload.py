@@ -63,10 +63,19 @@ async def upload_csv(
             detail=f"Недостаточно кредитов (нужно {FORECAST_COST}, есть {balance.amount})",
         )
 
-    # 4) Создаём upload + job, списываем кредиты
+    # 4) Создаём upload + job, списываем кредиты.
+    # Списание может упасть при гонке параллельных загрузок (баланс проверяется
+    # повторно под блокировкой строки) — тогда помечаем job failed и отдаём 402.
     upload_row = upload_service.create_upload(session, user_id, file.filename, row_count, sku_count)
     job = forecast_service.create_job(session, upload_row.id, horizon, cost_credits=FORECAST_COST)
-    create_transaction(session, user_id, "withdraw", FORECAST_COST, description=f"forecast job {job.id}")
+    try:
+        create_transaction(session, user_id, "withdraw", FORECAST_COST, description=f"forecast job {job.id}")
+    except ValueError:
+        forecast_service.update_status(session, job.id, "failed", error_message="insufficient credits")
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=f"Недостаточно кредитов (нужно {FORECAST_COST})",
+        )
 
     # 5) Публикуем задачу. CSV → payload (не в БД).
     df_payload = df[["date", "sku_id", "sales"]].copy()
