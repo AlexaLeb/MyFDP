@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+from sqlalchemy import delete
 from sqlmodel import select
 
 from models.ForecastJob import ForecastJob
@@ -41,7 +42,12 @@ def update_status(session, job_id: int, status: str, error_message: Optional[str
 
 
 def save_results(session, job_id: int, rows: List[dict]) -> int:
-    """rows: [{sku_id, date, q10, q50, q90}]. Возвращает число сохранённых строк."""
+    """rows: [{sku_id, date, q10, q50, q90}]. Возвращает число сохранённых строк.
+
+    Идемпотентно: старые строки job_id удаляются в той же транзакции, поэтому
+    повторная доставка задачи (redelivery после падения воркера) не даёт дублей.
+    """
+    session.execute(delete(ForecastResult).where(ForecastResult.job_id == job_id))
     objects = [
         ForecastResult(
             job_id=job_id,

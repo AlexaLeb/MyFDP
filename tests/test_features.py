@@ -63,3 +63,16 @@ def test_m5_only_features_filled_zero():
     row = build_feature_row([1.0] * 60, pd.Timestamp("2024-03-01"))
     for col in ("sell_price", "snap_CA", "has_event", "is_promo"):
         assert row[col] == 0.0
+
+def test_validate_duplicate_dates_rejected():
+    df = _make_df(MIN_HISTORY_DAYS + 5)
+    df = pd.concat([df, df.iloc[[10]]], ignore_index=True)  # дубль одной даты
+    with pytest.raises(ValueError, match="Дубликат"):
+        validate_csv(df)
+
+
+def test_validate_date_gaps_rejected():
+    df = _make_df(MIN_HISTORY_DAYS + 10)
+    df = df.drop(index=[30])  # дырка в середине истории
+    with pytest.raises(ValueError, match="пропуск"):
+        validate_csv(df)

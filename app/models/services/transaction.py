@@ -4,8 +4,8 @@ from typing import Optional, List
 
 from sqlmodel import select
 
+from models.Balance import Balance
 from models.Transactions import Transaction
-from models.services.balance import get_by_user_id as get_balance
 from logger.logging import get_logger
 
 logger = get_logger(logger_name=__name__)
@@ -13,7 +13,12 @@ logger = get_logger(logger_name=__name__)
 
 def create(session, user_id: int, tx_type: str, amount, description: Optional[str] = None) -> Transaction:
     """Создаёт транзакцию и атомарно меняет баланс. tx_type: deposit | withdraw."""
-    balance = get_balance(session, user_id)
+    # SELECT ... FOR UPDATE: строка баланса блокируется до конца транзакции,
+    # параллельные списания не читают один и тот же остаток (double spend).
+    # SQLite (тесты) молча игнорирует FOR UPDATE — там гонок нет.
+    balance = session.exec(
+        select(Balance).where(Balance.user_id == user_id).with_for_update()
+    ).first()
     if balance is None:
         raise ValueError("Balance not found")
 
